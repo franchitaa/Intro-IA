@@ -180,3 +180,111 @@ Random Forest ofrece una medida de importancia de variables basada en la reducci
 La combinación de múltiples árboles produce un modelo de mayor opacidad respecto a los anteriores, debido a que las clasificaciones son difíciles de explicar a nivel de instancia individual sin recurrir a herramientas adicionales de interpretabilidad, el ajuste de sus hiperparámetros requiere más esfuerzo computacional que los modelos anteriores, aunque esta limitación es poco relevante para el tamaño del dataset del proyecto.
 
 La clasificación de categorías de productos involucra interacciones multidimensionales entre variables que un modelo lineal no puede capturar sin especificación explícita, ya que la combinación entre categoría, producto, precio y cantidad genera fronteras de decisión no lineales. Adicionalmente, la importancia de variables que genera el ensemble permitirá identificar qué características son realmente determinantes para discriminar ventas de alto valor, favoreciendo el análisis con evidencia basada en el modelo entrenado.
+
+### 4. Implementación
+
+La implementación completa en base al dataset mensionado anteriormente con los 1.000 datos registrados.
+
+Se cargó el dataset y se convirtió la columna Date a formato datetime. Las estadísticas descriptivas confirman que Quantity varía entre 1 y 5 unidades con una media de 3.04 y que Price presenta una dispersión considerable, entre 407.43 y 60.347,51, con una media de 8.940,49 y una desviación estándar de 14.229,46. 
+
+Esta diferencia entre media y desviación estándar evidencia una distribución de precios fuertemente asimétrica hacia la derecha, lo que valida la decisión metodológica de aplicar una transformación logarítmica posteriormente. El periodo de transacciones cubre desde enero hasta finales de junio de 2026, y no se detectaron valores nulos.
+
+### 4.1 Análisis Exploratorio de Datos (EDA)
+
+Distribución de la variable objetivo, se confirma un escenario de clases moderadamente desbalanceadas como se demuestra en la tabla de distribución de categorios en el notebook Electronics concentra el 32.8% de las transacciones, Fashion el 22.6%, Home Appliances el 21.9%, Accessories el 16.1% y Books únicamente el 6.6%. Este desbalance, resulta relevante para la interpretación de las métricas por clase, particularmente para la clase minoritaria Books.
+
+
+
+<img width="773" height="530" alt="image" src="https://github.com/user-attachments/assets/950bedda-64ea-43f7-99d0-d10057fe56cb" />
+
+Se verificó que cada uno de los 14 productos del catálogo pertenece a una única categoría. Esta relación 1 a 1 confirma que Product constituye una fuga de información (data leakage) directa hacia la variable objetivo, por lo que fue excluida del entrenamiento. Esta decisión reemplaza la alternativa de codificación por frecuencia (Product_Freq).
+
+<img width="1487" height="490" alt="image" src="https://github.com/user-attachments/assets/feedd562-ac62-42cd-93b8-2c989e211152" />
+
+Los diagramas de caja muestran que Electronics es la categoría con mayor dispersión de precios y la presencia de valores atípicos hacia precios altos, mientras que Books concentra los precios más bajos y homogéneos, mientras tanto la variable Quantity, no muestra diferencias entre categorías, lo que anticipa un bajo poder predictivo para esta variable.
+
+La distribución de transacciones por ciudad es homogénea ya que se encuentra entre 87 y 125 transacciones por ciudad, sobre 10 ciudades, sin una concentración geográfica marcada. 
+
+<img width="1489" height="490" alt="image" src="https://github.com/user-attachments/assets/4be0f689-4418-43b0-b74e-16251befa0b5" />
+
+El análisis mensual por categoría muestra que Electronics se mantiene consistentemente como la categoría líder en volumen a lo largo de los seis meses, mientras que Books permanece estable como la categoría de menor volumen.
+
+### 4.2 Feature Engineering
+
+A partir de Date se generaron las variables Month, DayOfWeek, Quarter e Is_Weekend. Sobre Price se aplicó la transformación Log_Price = log(1 + Price) para reducir la asimetría, tomando en consideración que no se esta contemplando la variaple Product, ya que esto produce una desviación menor.
+
+Las variables finalmente utilizadas como predictoras son Quantity, Price, Log_Price, City, Month, DayOfWeek, Quarter e Is_Weekend, ademad de dos columnas diferenciadoras, una con StandardScaler sobre las variables numéricas para la Regresión Logística, y otro con passthrough para los modelos basados en árboles Decision Tree y Random Forest, que no requieren escalado.
+
+La división train/test se realizó en proporción 80/20 con estratificación sobre Category y semilla fija con "random_state=42", obteniendo 800 registros de entrenamiento y 200 de prueba, ademas se verificó que la distribución de clases se conserva casi exactamente entre ambos conjuntos con una diferencias menores a 0.5 puntos porcentuales por clase.
+
+### 4.3 Entrenamiento y Control de Overfitting
+
+Directamente de la codificación se realizaron los 3 modelos definidos, a través de hiperparametros guiados explícitamente al los controles de sobreajuste.
+
+| Modelo              | Accuracy Entrenamiento | Accuracy Prueba |
+| ------------------- | ---------------------- | --------------- |
+| Regresión Logística | 67,38%                 | 67,50%          |
+| Decision Tree       | 90,62%                 | 87,50%          |
+| Random Forest       | 92,75%                 | 87,50%          |
+
+La tabla refleja que la Regresión Logística obtuvo el menor desempeño, alcanzando una exactitud cercana al 67% tanto en entrenamiento como en prueba, lo que nos indica ue el modelo posee una capacidad limitada para capturar las relaciones existentes entre las variables y la categoría del producto.
+
+Por otro lado, el modelo basado en arboles presentaron un desempeño considerablemente superior, el Árbol de Decisión alcanzó una exactitud del 90,62% en entrenamiento y 87,50% en prueba, mientras que Random Forest obtuvo un 92,75% en entrenamiento y 87,50% en prueba.
+
+### 4.4 Control de Overfitting
+
+Uno de los aspectos más relevantes durante el entrenamiento fue evaluar la capacidad de generalización de los modelos y detectar posibles problemas de sobreajuste "overfitting".
+
+| Modelo              | Overfitting Gap |
+| ------------------- | --------------- |
+| Regresión Logística | -0,0013         |
+| Decision Tree       | 0,0312          |
+| Random Forest       | 0,0525          |
+
+La Regresión Logística presenta un Overfitting Gap prácticamente nulo, lo que representa que el comportamiento del modelo es muy similar en entrenamiento y prueba. Sin embargo, este resultado no necesariamente implica un mejor modelo, sino que demuestra una menor complejidad y una capacidad limitada para capturar patrones más sofisticados presentes en los datos.
+
+El Árbol de Decisión presenta una diferencia de aproximadamente 3,1 puntos porcentuales entre entrenamiento y prueba. Esta diferencia es relativamente pequeña y sugiere que el modelo mantiene una adecuada capacidad, sin evidencias importantes de sobreajuste.
+
+Y por ultimo, el Random Forest presenta la mayor diferencia entre entrenamiento y prueba, alcanzando aproximadamente 5,3 puntos porcentuales, esta diferencia sigue siendo moderada y se encuentra dentro de rangos aceptables para modelos de ensamblaje y el rendimiento en prueba se mantiene elevado, lo que permite concluir que el modelo conserva una buena capacidad
+
+### 5.Resultados obtenidos.
+
+### 5.1 Comparación de Métricas
+
+| Modelo | Train Accuracy | Test Accuracy | Precision (Weighted) | Recall (Weighted) | F1-Score (Weighted) | ROC-AUC OVR (Weighted) | Overfitting Gap |
+|----------|----------|----------|----------|----------|----------|----------|----------|
+| Regresión Logística | 0.6738 | 0.6750 | 0.6791 | 0.6750 | 0.6423 | 0.8809 | -0.0013 |
+| Decision Tree | 0.9062 | 0.8750 | 0.8873 | 0.8750 | 0.8762 | 0.9836 | 0.0312 |
+| Random Forest | 0.9275 | 0.8750 | 0.8889 | 0.8750 | 0.8769 | 0.9857 | 0.0525 |
+
+Los resultados muestran que los modelos basados en árboles superan ampliamente a la Regresión Logística en todas las métricas evaluadas. 
+
+La Regresión Logística obtuvo una exactitud cercana al 67,5%, lo que indica que las relaciones presentes en los datos no son completamente lineales.
+
+Por otro lado, Decision Tree y Random Forest alcanzaron una exactitud del 87,5% sobre el conjunto de prueba, lo que demuestra una mejor capacidad para capturar patrones complejos entre las variables predictoras y la categoría del producto.
+
+### 5.2 Matrices de Confusión
+
+La Regresión Logística concentra casi todos sus errores en la clase Accessories, que es  confundida con Fashion y Home Appliances, mientras que Books y Home Appliances son bien identificadas. Decision Tree y Random Forest muestran patrones de error casi idénticos entre sí, ambos clasifican perfectamente Books, identifican con alta certeza Home Appliances, y concentran su confusión principal entre Electronics y Fashion, junto con cierta confusión menor entre Accessories y Fashion.
+
+<img width="1530" height="532" alt="image" src="https://github.com/user-attachments/assets/cba76110-6955-48fc-a552-17e67b9487ef" />
+
+### 5.3 Reporte por clase
+
+El hallazgo más notorio es el desempeño de la Regresión Logística sobre Accessories con una precision 0.09, recall 0.03 y F1 0.05, lo que demuestra que el modelo prácticamente no logra identificar esta clase solo 1 de 32 instancias correctamente clasificadas, compensando artificialmente su accuracy global al clasificar correctamente clases más separables como Books y Home Appliances con un recall 0.98.
+
+Por otro lado, Decision Tree y Random Forest logran un desempeño equilibrado en Accessories con precision=0.79, recall=0.84, F1=0.82 y muestran un patrón en Electronics considerando una precision de 1.00 pero recall de solo 0.80, es decir, cuando el modelo predice Electronics nunca se equivoca, pero deja sin identificar cerca de un 20% de las transacciones reales de esa categoría.
+
+<img width="1489" height="490" alt="image" src="https://github.com/user-attachments/assets/85c73727-96b4-4ca9-997c-af1acb88aab8" />
+
+El bajo desempeño de la Regresión Logística, combinado con su brecha de overfitting prácticamente nula (-0.0013), no indica buena generalización sino subajuste (underfitting), el modelo es demasiado simple para representar las fronteras de decisión reales entre categorías.
+
+Decision Tree y Random Forest obtienen exactamente el mismo accuracy de test (0.875), pero Random Forest presenta una brecha de overfitting mayor a 0.0525 frente a 0.0312 . 
+
+La clase minoritaria Books (6.6% de los datos) es clasificada perfectamente por los tres modelos, lo que indica que su separabilidad depende de un rango de precios claramente distintivo.
+
+### 6.Conclusiones
+
+El desarrollo del proyecto afirma que la categoria de un producto en el dicho dataset descrito anteriormente puede predecirse con un desempeño satisfactorio con un 87.5% de accuracy en test, F1 weighted 0.877, sin la necesidad de la variable product
+
+Por otro lado, Random Forest y Decision Tree resultan ser los modelos recomendados para este problema, con un desempeño casi idéntico entre ambos,  dada su mayor interpretabilidad y menor brecha de overfitting, el Decision Tree con profundidad acotada constituye una alternativa igualmente competitiva y más simple que el ensemble. La Regresión Logística, si bien aporta un ROC-AUC de 0.88, no es adecuada como modelo final debido a su deficiencia de generalizar en la clase Accessories.
