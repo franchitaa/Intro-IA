@@ -1,4 +1,4 @@
-# Predicción de Ventas de Alto Valor en E-commerce mediante Machine Learning
+# Clasificación de Categorías de Productos en E-commerce mediante Machine Learning
 
 ## 1. Definición del Problema
 
@@ -23,29 +23,31 @@ La relevancia del problema se sostiene también en su viabilidad técnica, ya qu
 
 ### 1.2 Problema a Resolver
 
-El problema principal se basa en un dilema para poder predecir las ventas en vase a un modelo de aprendizaje automatico, a partir de las características en cada registro transaccional, se busca predecir si una venta corresponderá a una venta de alto valor económico o no, en base a lo anterior, se construirá una variable objetivo denominada "High_Value_Sale", proveneite del revenue de cada transacción:
+Las plataformas de comercio electrónico registran diariamente miles de transacciones que contienen información sobre productos, cantidades compradas, precios, ubicación geográfica y fecha de compra, pero además en otros contextos, la categoría de un producto puede no encontrarse disponible de manera explícita o puede requerir validación para mejorar procesos de clasificación, recomendación y análisis comercial.
 
-```
-Revenue = Quantity × Price
-```
+Debido a lo anterior, el problema consiste en desarrollar un modelo de Machine Learning capaz de predecir la categoría a la que pertenece un producto utilizando información transaccional disponible en cada orden de compra.
 
-Las transacciones cuyo revenue supere la mediana del conjunto de datos completo serán etiquetadas como clase positiva "High_Value_Sale = 1", el resto como clase negativa "High_Value_Sale = 0". El uso de la mediana nos demuestra una partición equilibrada lo que simplifica el proceso al reducir la necesidad de técnicas de rebalanceo de clases en caso de que se encuentre un sesgo dentro de los datos debido a la diferencia de los datos.
+La variable objetivo del proyecto será "Category", la cual contiene clases como "Electronics", "Accessories", "Home Appliances", "Fashion", "Books".
+
+Por lo tanto, el problema corresponde a una tarea de clasificación supervisada multiclase.
 
 ### 1.3 Objetivo General
 
-Desarrollar, entrenar y evaluar comparativamente tres modelos de clasificación supervisada como la regresión logística, árbol de decisión y random forest para la predicción de ventas de alto valor en un dataset de e-commerce, identificando el modelo que demuestre el mejor equilibrio segun su capacidad de predicción, estabilidad ante el sobreajuste y la interpretación de los datos de resultados.
+Desarrollar, entrenar y evaluar comparativamente modelos de clasificación supervisada capaces de predecir la categoría de un producto dentro de una plataforma de comercio electrónico, identificando el algoritmo que presente el mejor desempeño predictivo y capacidad de generalización.
 
 ### 1.4 Objetivos Específicos
 
-1. Realizar un análisis de datos que permita caracterizar la distribución de las variables, identificando patrones relevantes, junto con las relaciones entre los predictores disponibles y la variable objetivo.
+1. Realizar un análisis exploratorio de los datos para identificar patrones y relaciones entre las variables disponibles.
 
-2. Construir la variable objetivo "High_Value_Sale", empleando la mediana del revenue como umbral de clasificación y verificando el balance resultante de clases.
+2. Preparar y transformar los datos mediante técnicas de preprocesamiento y Feature Engineering.
 
-3. Seleccionar las características más relevantes mediante técnicas estadísticas y métricas.
+3. Seleccionar las variables más relevantes para la predicción de la categoría del producto.
 
-4. Entrenar los tres modelos seleccionados bajo una estrategia controlada de partición Train/Test, controlando el sobreajuste mediante la regulación de hiperparámetros y validación cruzada.
+4. Entrenar modelos de clasificación supervisada utilizando Regresión Logística, Árboles de Decisión y Random Forest.
 
-5. Evaluar el desempeño de cada modelo mediante un conjunto comprehensivo de métricas como accuracy, precision, recall, F1-Score, ROC-AUC y matriz de confusión y comparar sus resultados para fundamentar la selección del modelo.
+5. Evaluar y comparar el desempeño de los modelos mediante métricas de clasificación multiclase.
+
+6. Identificar el modelo que mejor represente para la clasificación automática de categorías de productos.
 
 ## 2. Plan de Acción
 
@@ -89,15 +91,17 @@ Se verificará la consistencia de los registros, se tratarán los valores atípi
 
 #### Feature Engineering
 
-Se extraerán características temporales de la variable "Date": mes (Month), día de la semana (DayOfWeek), trimestre (Quarter) e indicador de fin de semana (Is_Weekend). Se aplicará una transformación logarítmica sobre "Price" mediante "Log_Price = log(1 + Price)" para reducir la asimetría positiva de la distribución. Se construirá una variable de frecuencia para "Product" (Product_Freq) que capture la popularidad relativa de cada artículo en el conjunto de datos.
+Se extraerán características temporales de la variable "Date": mes (Month), día de la semana (DayOfWeek), trimestre (Quarter) e indicador de fin de semana (Is_Weekend). Se aplicará una transformación logarítmica sobre "Price" mediante "Log_Price = log(1 + Price)" para reducir la asimetría positiva de la distribución. También se construirá una variable de frecuencia para "Product" denominada "Product_Freq", con el objetivo de capturar la aprobación de cada producto dentro del conjunto de datos.
 
-#### Construcción de la Variable Objetivo
+#### Definición de la Variable Objetivo
 
-Se calculará "Revenue = Quantity × Price" para cada registro. Se determinará la mediana del revenue sobre el conjunto completo de 1.000 observaciones y se etiquetará cada registro: "High_Value_Sale = 1" si "Revenue > mediana", "0" en caso contrario. Se verificará el balance de clases resultante.
+La variable objetivo utilizada será "Category", la cual representa la categoría comercial a la que pertenece cada producto. Esta variable contiene cinco clases distintas ya antes mencionadas y será utilizada como objetivo de clasificación supervisada multiclase.
 
 #### Transformación de Variables Categóricas
 
-Se aplicará "One-Hot Encoding" sobre las variables "Category" y "City", dado que son variables nominales sin orden y con cardinalidad moderada. Para la variable "Product", se utilizará la codificación por frecuencia construida en la etapa de Feature Engineering.
+Se aplicará One-Hot Encoding sobre las variables categóricas relevantes para convertirlas en representaciones numéricas que puedan ser posibles y compatibles con los algoritmos de Machine Learning.
+
+Dependiendo del análisis exploratorio, se evaluará el tratamiento más adecuado para la variable Product, considerando codificación por frecuencia o exclusión en caso de representar directamente la categoría objetivo.
 
 #### División Train/Test
 
@@ -119,11 +123,11 @@ Se construirá una tabla comparativa de métricas entre los tres modelos y se vi
 
 La evaluación del desempeño de los modelos se realizará mediante las siguientes métricas, cada una aportando una dimensión de análisis diferente:
 
-**Accuracy**: Proporción de predicciones correctas sobre el total de instancias,lo que permite ver la información en datasets balanceados como el presente, pero insuficiente por sí sola para capturar el comportamiento diferencial de los errores.
+**Accuracy**: Proporción de predicciones correctas sobre el total de instancias,lo que permite ver la información en datasets balanceados como el presente, pero insuficiente por sí sola para capturar el comportamiento de los errores.
 
-**Precision**: De todas las transacciones que el modelo clasifica como alto valor, qué fracción lo es efectivamente, esta métrica implica que el modelo genera pocos falsos positivos que son relevante cuando el costo de clasificar erróneamente una venta normal como de alto valor es significativo.
+**Precision**: De todas las transacciones que el modelo clasifica como categorías de productos, qué fracción lo es efectivamente, esta métrica implica que el modelo genera pocos falsos positivos que son relevante cuando el costo de clasificar de forma deficiente una venta normal como de alto valor es significativo.
 
-**Recall**: De todas las transacciones que realmente son de alto valor se debe verificar qué fracción del modelo identifica correctamente, considerando que un elevado Recall implica que el modelo no omite ventas de alto valor, lo que resulta relevante cuando el costo de no detectar una venta de alto valor es alto.
+**Recall**: De todas las transacciones que realmente son categorías de productos se debe verificar qué fracción del modelo identifica correctamente, considerando que un elevado Recall implica que el modelo no omite categorías de productos, lo que resulta relevante cuando el costo de no detectar una venta de alto valor es alto.
 
 **F1-Score**: Media armónica entre Precision y Recall, a través de esta metrica podemos analizar que ofrece un balance equilibrado entre ambas métricas y constituye la métrica principal de comparación entre modelos, especialmente útil cuando existe tensión entre Precision y Recall.
 
@@ -145,13 +149,13 @@ La Regresión Logística modela la probabilidad de pertenencia a la clase positi
 
 $$P(Y=1 \mid X) = \frac{1}{1 + e^{-(\beta_0 + \beta_1 X_1 + \cdots + \beta_n X_n)}}$$
 
-Los coeficientes $\beta$ son estimados mediante la maximización de la verosimilitud del modelo sobre los datos de entrenamiento. La predicción de clase se obtiene comparando la probabilidad estimada contra un umbral en el cual se desarrolle típicamente 0.5. El modelo incorpora regularización L2 (Ridge) controlada por el hiperparámetro "C", que penaliza la magnitud de los coeficientes para prevenir el sobreajuste.
+Los coeficientes $\beta$ son estimados mediante la maximización de la verosimilitud del modelo sobre los datos de entrenamiento. La predicción de clase se obtiene comparando la probabilidad estimada contra un umbral en el cual se desarrolla típicamente en 0.5. El modelo incorpora regularización L2 (Ridge) controlada por el hiperparámetro "C", que penaliza la magnitud de los coeficientes para prevenir el sobreajuste.
 
-Su principal fortaleza reside en la interpretabilidad directa de los coeficientes, cada $\beta_i$ cuantifica el cambio en el log-odds de la variable objetivo ante un incremento unitario en el predictor correspondiente, facilitando la comunicación de resultados. Computacionalmente es muy eficiente, produce estimaciones de probabilidad calibradas y su regularización  ofrece control del sobreajuste.
+Su principal fortaleza reside en la interpretabilidad directa de los coeficientes, cada $\beta_i$ cuantifica el cambio en el log-odds de la variable objetivo ante un incremento en el predictor correspondiente, facilitando la comunicación de resultados. Computacionalmente es muy eficiente, ya que produce estimaciones de probabilidad calibradas y su regularización  ofrece control del sobreajuste.
 
 El modelo asume que la relación entre los predictores y la variable objetivo es lineal en el espacio logit, esta restricción limita su capacidad para capturar interacciones no lineales entre variables como la combinación entre categoría de producto y rango de precio, en presencia de relaciones complejas, su poder predictivo puede resultar inferior al de métodos basados en árboles.
 
-En el contexto de la predicción de ventas de alto valor, existe una relación esencialmente lineal entre el precio unitario y la probabilidad de superar el umbral de revenue, tomando en cuenta que a mayor precio, mayor revenue esperado. Esta relación dominante hace que un modelo lineal capture una fracción significativa de la varianza explicable, posicionándolo competitivo y técnicamente sólido. Adicionalmente, los coeficientes estimados proveerán evidencia cuantitativa sobre la influencia relativa de cada variable transaccional sobre la probabilidad de una venta de alto valor.
+En el contexto de la clasificación de categorías de productos, existe una relación esencialmente lineal entre el precio unitario y la probabilidad de superar el umbral de revenue, tomando en cuenta que a mayor precio, mayor revenue esperado. Esta relación dominante hace que un modelo lineal capture una fracción significativa de la varianza explicable, posicionándolo competitivo y técnicamente sólido. Adicionalmente, los coeficientes estimados proveerán evidencia cuantitativa sobre la influencia relativa de cada variable transaccional sobre la probabilidad de una clasificación de categorías de productos.
 
 ### 3.2 Decision Tree
 
@@ -163,7 +167,7 @@ Su principal activo es la interpretabilidad dado la visualización del árbol pe
 
 Sin restricciones adecuadas a su crecimiento, el árbol tiende fuertemente al sobreajuste, ya que puede memorizar el conjunto de entrenamiento generando fronteras de decisión excesivamente complejas que no generalizan ante datos nuevos. Los árboles individuales presentan además alta varianza debido a pequeñas perturbaciones en los datos de entrenamiento pueden producir estructuras de árbol significativamente distintas. Esta inestabilidad es la principal motivación para los métodos construidos sobre árboles.
 
-Las relaciones que determinan si una venta es de alto valor son naturalmente expresables en términos de reglas con umbrales, un producto de la categoría Electronics con precio unitario superior a cierto valor tiene alta probabilidad de generar un revenue que supere la mediana, La estructura permite descubrir estas reglas de forma automática a partir de los datos. La visualización del árbol resultante constituye además un hallazgo analítico de valor independiente, al explicitar las condiciones que el modelo considera determinantes para clasificar una venta como de alto valor.
+Las relaciones que determinan si una clasificación de categorías de productos son naturalmente expresables en términos de reglas con umbrales, un producto de la categoría Electronics con precio unitario superior a cierto valor tiene alta probabilidad de generar un revenue que supere la mediana, La estructura permite descubrir estas reglas de forma automática a partir de los datos. La visualización del árbol resultante constituye además un hallazgo analítico de valor independiente, al explicitar las condiciones que el modelo considera determinantes para clasificar una clasificación de categorías de productos.
 
 ### 3.3 Random Forest
 
@@ -173,6 +177,6 @@ Random Forest implementa el principio mediante la técnica de "bagging" aplicada
 
 Random Forest ofrece una medida de importancia de variables basada en la reducción media de impureza, que resulta valiosa tanto para la interpretación del modelo como para la selección de características. Su mecanismo de out-of-bag error proporciona una estimación interna del error de generalización sin necesidad de un conjunto de validación separado, ademas se puede decir que es robusto frente a valores atípicos, variables irrelevantes y diferencias de escala entre predictores.
 
-La combinación de múltiples árboles produce un modelo de mayor opacidad respecto a los anteriores, debido a que las predicciones son difíciles de explicar a nivel de instancia individual sin recurrir a herramientas adicionales de interpretabilidad, el ajuste de sus hiperparámetros requiere más esfuerzo computacional que los modelos anteriores, aunque esta limitación es poco relevante para el tamaño del dataset del proyecto.
+La combinación de múltiples árboles produce un modelo de mayor opacidad respecto a los anteriores, debido a que las clasificaciones son difíciles de explicar a nivel de instancia individual sin recurrir a herramientas adicionales de interpretabilidad, el ajuste de sus hiperparámetros requiere más esfuerzo computacional que los modelos anteriores, aunque esta limitación es poco relevante para el tamaño del dataset del proyecto.
 
-La predicción de ventas de alto valor involucra interacciones multidimensionales entre variables que un modelo lineal no puede capturar sin especificación explícita, ya que la combinación entre categoría, producto, precio y cantidad genera fronteras de decisión no lineales. Adicionalmente, la importancia de variables que genera el ensemble permitirá identificar qué características son realmente determinantes para discriminar ventas de alto valor, favoreciendo el análisis con evidencia basada en el modelo entrenado.
+La clasificación de categorías de productos involucra interacciones multidimensionales entre variables que un modelo lineal no puede capturar sin especificación explícita, ya que la combinación entre categoría, producto, precio y cantidad genera fronteras de decisión no lineales. Adicionalmente, la importancia de variables que genera el ensemble permitirá identificar qué características son realmente determinantes para discriminar ventas de alto valor, favoreciendo el análisis con evidencia basada en el modelo entrenado.
